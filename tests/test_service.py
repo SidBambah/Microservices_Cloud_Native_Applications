@@ -14,6 +14,7 @@ def t2():
     user = {
         "last_name": "Gamgee",
         "first_name": "Sam",
+        "id": "test_id",
         "email": "sg@shore.gov",
         "password": "cat"
     }

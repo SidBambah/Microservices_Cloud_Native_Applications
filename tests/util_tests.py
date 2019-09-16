@@ -17,5 +17,5 @@ def t2():
     print("Password check result = ", result)
 
 
-#t1()
+t1()
 t2()

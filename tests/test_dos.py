@@ -5,7 +5,7 @@ from Context.Context import Context
 
 threadlocal = threading.local()
 
-# TODO: We should read this information from the environment.
+# We should read this information from the environment.
 # Note: Completed
 default_connect_info =  {
     "host" :'localhost',

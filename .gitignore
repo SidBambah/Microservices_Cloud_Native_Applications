@@ -6,3 +6,6 @@
 
 # Editor Specific Settings
 .idea/*
+
+# Bytecode to be ignored
+__pycache__/*

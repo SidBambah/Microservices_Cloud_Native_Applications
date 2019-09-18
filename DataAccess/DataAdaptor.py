@@ -208,6 +208,3 @@ def create_update(table_name, new_values, template):
     sql = "update " + table_name + " set " + s_clause + " "+ w_clause
 
     return sql, args
-
-
-

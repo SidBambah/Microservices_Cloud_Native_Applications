@@ -8,6 +8,7 @@ from flask import Flask, Response, request
 
 from datetime import datetime
 import json
+import uuid
 
 from CustomerInfo.Users import UsersService as UserService
 from Context.Context import Context
@@ -208,6 +209,59 @@ def user_email(email):
     log_response("/email", rsp_status, rsp_data, rsp_txt)
 
     return full_rsp
+
+@application.route("/api/registrations", methods=["POST"])
+def user_registration():
+    global _user_service
+
+    inputs = log_and_extract_input(demo)
+    rsp_data = None
+    rsp_status = None
+    rsp_txt = None
+
+    try:
+
+        user_service = _get_user_service()
+
+        logger.error("/email: _user_service = " + str(user_service))
+
+        if inputs["method"] == "POST":
+            #Get the user's information from the POST request
+            user_data = inputs["query_params"]
+            #Set default status to pending and generate random id
+            user_data['status'] = "PENDING"
+            user_data['id'] = str(uuid.uuid4())
+            rsp = user_service.create_user(user_data)
+
+            if rsp is not None:
+                rsp_data = rsp
+                rsp_status = 200
+                rsp_txt = "OK"
+            else:
+                rsp_data = None
+                rsp_status = 404
+                rsp_txt = "COULD NOT CREATE"
+        else:
+            rsp_data = None
+            rsp_status = 501
+            rsp_txt = "Only POST Method Allowed"
+
+        if rsp_data is not None:
+            full_rsp = Response(json.dumps(rsp_data), status=rsp_status, content_type="application/json")
+        else:
+            full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
+
+    except Exception as e:
+        log_msg = "/registrations: Exception = " + str(e)
+        logger.error(log_msg)
+        rsp_status = 500
+        rsp_txt = "INTERNAL SERVER ERROR. Please take COMSE6156 -- Cloud Native Applications."
+        full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
+
+    log_response("/registrations", rsp_status, rsp_data, rsp_txt)
+
+    return full_rsp
+
 
 
 logger.debug("__name__ = " + str(__name__))

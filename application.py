@@ -189,6 +189,29 @@ def user_email(email):
                 rsp_data = None
                 rsp_status = 404
                 rsp_txt = "NOT FOUND"
+        elif inputs["method"] == "PUT":
+            #rsp = user_service.update_user(email)
+            rsp = 'temp response'
+            if rsp is not None:
+                rsp_data = rsp
+                rsp_status = 200
+                rsp_txt = "OK"
+            else:
+                rsp_data = None
+                rsp_status = 404
+                rsp_txt = "NOT UPDATED"
+        elif inputs["method"] == "DELETE":
+
+            rsp = user_service.delete_user(email)
+
+            if rsp is not None:
+                rsp_data = rsp
+                rsp_status = 200
+                rsp_txt = "OK"
+            else:
+                rsp_data = None
+                rsp_status = 404
+                rsp_txt = "NOT DELETED"
         else:
             rsp_data = None
             rsp_status = 501

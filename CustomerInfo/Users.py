@@ -62,6 +62,12 @@ class UsersService(BaseService):
 
         return result
 
+    @classmethod
+    def delete_user(cls, email):
+
+        result = UsersRDB.delete_user(email)
+        return result
+
 
 
 

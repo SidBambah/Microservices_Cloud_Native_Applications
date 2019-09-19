@@ -63,7 +63,16 @@ class UsersRDB(BaseDataObject):
 
         return result
 
+    @classmethod
+    def delete_user(cls, email):
 
+        sql = "delete from e6156.users where email=%s"
+        res, data = data_adaptor.run_q(sql=sql, args=(email), fetch=True)
+        if res == 1:
+            res = "Successful Deletion"
+        else:
+            res = None
+        return res
 
 
 

@@ -20,5 +20,10 @@ def t2():
      res = UsersRDB.create_user(user_info=usr)
      print("Res = ", res)
 
+def t3():
+    r = UsersRDB.delete_user('fb@shire.gov')
+    print("Result = \n", json.dumps(r, indent=2))
+
 #t1()
 #t2()
+#t3()

@@ -24,6 +24,15 @@ def t3():
     r = UsersRDB.delete_user('fb@shire.gov')
     print("Result = \n", json.dumps(r, indent=2))
 
+def t4():
+    usr = {
+        "last_name": "testupdate",
+        "email": "fb@shire.gov",
+    }
+    res = UsersRDB.update_user(user_info=usr)
+    print("Res = ", res)
+
 #t1()
 #t2()
 #t3()
+#t4()

@@ -190,8 +190,9 @@ def user_email(email):
                 rsp_status = 404
                 rsp_txt = "NOT FOUND"
         elif inputs["method"] == "PUT":
-            #rsp = user_service.update_user(email)
-            rsp = 'temp response'
+            usr_info = inputs["query_params"]
+            usr_info["email"] = email
+            rsp = user_service.update_user(usr_info)
             if rsp is not None:
                 rsp_data = rsp
                 rsp_status = 200

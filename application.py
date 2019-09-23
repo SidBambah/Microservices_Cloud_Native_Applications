@@ -190,7 +190,7 @@ def user_email(email):
                 rsp_status = 404
                 rsp_txt = "NOT FOUND"
         elif inputs["method"] == "PUT":
-            usr_info = inputs["query_params"]
+            usr_info = inputs["body"]
             usr_info["email"] = email
             rsp = user_service.update_user(usr_info)
             if rsp is not None:
@@ -251,7 +251,7 @@ def user_registration():
 
         if inputs["method"] == "POST":
             #Get the user's information from the POST request
-            user_data = inputs["query_params"]
+            user_data = inputs["body"]
             #Set default status to pending and generate random id
             user_data['status'] = "PENDING"
             user_data['id'] = str(uuid.uuid4())

@@ -286,8 +286,6 @@ def user_registration():
 
     return full_rsp
 
-
-
 logger.debug("__name__ = " + str(__name__))
 # run the app.
 if __name__ == "__main__":

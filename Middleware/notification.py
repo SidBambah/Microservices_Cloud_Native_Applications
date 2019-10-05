@@ -6,5 +6,5 @@ def publish_it(msg):
 
     client = boto3.client('sns')
     txt_msg = json.dumps(msg)
-    client.publish(TopicArn="arn:aws:sns:us-east-1:836570052658:UserChange", Subject="User Change",
+    client.publish(TopicArn="arn:aws:sns:us-east-1:836570052658:UserChange", Subject="New User",
                    Message=txt_msg)

@@ -12,7 +12,7 @@ import uuid
 
 from CustomerInfo.Users import UsersService as UserService
 from Context.Context import Context
-
+from Middleware import notification
 # Setup and use the simple, common Python logging framework. Send log messages to the console.
 # The application should get the log level out of the context. We will change later.
 #
@@ -258,6 +258,8 @@ def user_registration():
             rsp = user_service.create_user(user_data)
 
             if rsp is not None:
+                #Send user verification email
+                notification.publish_it({"user_email": user_data['email']})
                 rsp_data = rsp
                 rsp_status = 200
                 rsp_txt = "OK"

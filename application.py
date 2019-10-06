@@ -195,7 +195,8 @@ def user_email(email):
             auth = headers["Authorization"]
             if security.check_auth(auth):
                 usr_info = inputs["body"]
-                usr_info["email"] = email
+                if "email" not in usr_info:
+                    usr_info["email"] = email
                 rsp = user_service.update_user(usr_info)
                 if rsp is not None:
                     rsp_data = rsp

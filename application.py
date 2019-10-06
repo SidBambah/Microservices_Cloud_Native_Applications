@@ -176,8 +176,6 @@ def user_email(email):
 
         user_service = _get_user_service()
 
-        logger.error("/email: _user_service = " + str(user_service))
-
         if inputs["method"] == "GET":
 
             rsp = user_service.get_by_email(email)
@@ -191,6 +189,7 @@ def user_email(email):
                 rsp_status = 404
                 rsp_txt = "NOT FOUND"
         elif inputs["method"] == "PUT":
+            logger.log(inputs)
             headers = inputs["headers"]
             auth = headers["Authorization"]
             if security.check_auth(auth):

@@ -13,6 +13,7 @@ import uuid
 from CustomerInfo.Users import UsersService as UserService
 from Context.Context import Context
 from Middleware import notification
+from Middleware import security
 # Setup and use the simple, common Python logging framework. Send log messages to the console.
 # The application should get the log level out of the context. We will change later.
 #
@@ -190,29 +191,41 @@ def user_email(email):
                 rsp_status = 404
                 rsp_txt = "NOT FOUND"
         elif inputs["method"] == "PUT":
-            usr_info = inputs["body"]
-            usr_info["email"] = email
-            rsp = user_service.update_user(usr_info)
-            if rsp is not None:
-                rsp_data = rsp
-                rsp_status = 200
-                rsp_txt = "OK"
+            headers = inputs["headers"]
+            auth = headers["Authorization"]
+            if security.check_auth(auth):
+                usr_info = inputs["body"]
+                usr_info["email"] = email
+                rsp = user_service.update_user(usr_info)
+                if rsp is not None:
+                    rsp_data = rsp
+                    rsp_status = 200
+                    rsp_txt = "OK"
+                else:
+                    rsp_data = None
+                    rsp_status = 404
+                    rsp_txt = "NOT UPDATED"
             else:
                 rsp_data = None
                 rsp_status = 404
-                rsp_txt = "NOT UPDATED"
+                rsp_txt = "Not authorized"
         elif inputs["method"] == "DELETE":
-
-            rsp = user_service.delete_user(email)
-
-            if rsp is not None:
-                rsp_data = rsp
-                rsp_status = 200
-                rsp_txt = "OK"
+            headers = inputs["headers"]
+            auth = headers["Authorization"]
+            if security.check_auth(auth):
+                rsp = user_service.delete_user(email)
+                if rsp is not None:
+                    rsp_data = rsp
+                    rsp_status = 200
+                    rsp_txt = "OK"
+                else:
+                    rsp_data = None
+                    rsp_status = 404
+                    rsp_txt = "NOT DELETED"
             else:
                 rsp_data = None
                 rsp_status = 404
-                rsp_txt = "NOT DELETED"
+                rsp_txt = "Not authorized"
         else:
             rsp_data = None
             rsp_status = 501

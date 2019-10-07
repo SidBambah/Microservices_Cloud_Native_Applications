@@ -1,0 +1,10 @@
+# Editor Specific Settings
+.idea/*
+.vscode/*
+
+# Bytecode to be ignored
+__pycache__/*
+
+static/*
+tests/*
+README.md

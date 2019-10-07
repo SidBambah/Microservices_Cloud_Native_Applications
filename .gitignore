@@ -3,6 +3,7 @@
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+.ebextenstions/*
 
 # Editor Specific Settings
 .idea/*

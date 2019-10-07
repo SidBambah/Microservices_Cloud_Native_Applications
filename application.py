@@ -189,7 +189,7 @@ def user_email(email):
                 rsp_status = 404
                 rsp_txt = "NOT FOUND"
         elif inputs["method"] == "PUT":
-            logger.log(inputs)
+            logger.info(inputs)
             headers = inputs["headers"]
             auth = headers["Authorization"]
             if security.check_auth(auth):

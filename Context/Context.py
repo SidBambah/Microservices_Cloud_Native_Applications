@@ -22,10 +22,11 @@ class Context():
     @classmethod
     def get_default_context(cls):
 
-        db_connect_info = os.environ['db_connect_info']
+        db_connect_info = os.environ.get('db_connect_info', None)
         db_connect_info = json.loads(db_connect_info)
-
+        secret = os.environ.get('JWT_SECRET', None)
         ctx = { "db_connect_info": db_connect_info }
+        ctx['JWT_SECRET'] = secret
 
         result = Context(ctx)
         return result

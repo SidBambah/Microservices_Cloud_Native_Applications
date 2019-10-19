@@ -11,6 +11,7 @@ import json
 import uuid
 
 from CustomerInfo.Users import UsersService as UserService
+from Services.RegisterLogin.RegisterLogin import RegisterLoginSvc
 from Context.Context import Context
 from Middleware import notification
 from Middleware import security
@@ -60,7 +61,7 @@ application.add_url_rule('/<username>', 'hello', (lambda username:
 
 _default_context = None
 _user_service = None
-
+_registration_service = None
 
 def _get_default_context():
 
@@ -79,6 +80,14 @@ def _get_user_service():
         _user_service = UserService(_get_default_context())
 
     return _user_service
+
+def _get_registration_service():
+    global _registration_service
+
+    if _registration_service is None:
+        _registration_service = RegisterLoginSvc()
+
+    return _registration_service
 
 def init():
 
@@ -192,7 +201,7 @@ def user_email(email):
             logger.info(inputs)
             headers = inputs["headers"]
             auth = headers["Authorization"]
-            if security.check_auth(auth):
+            if security.authorize(auth):
                 usr_info = inputs["body"]
                 if "email" not in usr_info:
                     usr_info["email"] = email
@@ -212,7 +221,7 @@ def user_email(email):
         elif inputs["method"] == "DELETE":
             headers = inputs["headers"]
             auth = headers["Authorization"]
-            if security.check_auth(auth):
+            if security.authorize(auth):
                 rsp = user_service.delete_user(email)
                 if rsp is not None:
                     rsp_data = rsp
@@ -249,7 +258,6 @@ def user_email(email):
 
 @application.route("/api/registrations", methods=["POST"])
 def user_registration():
-    global _user_service
 
     inputs = log_and_extract_input(demo)
     rsp_data = None
@@ -258,9 +266,7 @@ def user_registration():
 
     try:
 
-        user_service = _get_user_service()
-
-        logger.error("/email: _user_service = " + str(user_service))
+        r_svc = _get_registration_service()
 
         if inputs["method"] == "POST":
             #Get the user's information from the POST request
@@ -268,14 +274,16 @@ def user_registration():
             #Set default status to pending and generate random id
             user_data['status'] = "PENDING"
             user_data['id'] = str(uuid.uuid4())
-            rsp = user_service.create_user(user_data)
+            rsp = r_svc.register(user_data)
 
             if rsp is not None:
                 #Send user verification email
                 notification.publish_it({"user_email": user_data['email']})
                 rsp_data = rsp
-                rsp_status = 200
+                rsp_status = 201
                 rsp_txt = "OK"
+                link = rsp[0]
+                auth = rsp[1]
             else:
                 rsp_data = None
                 rsp_status = 404
@@ -286,6 +294,8 @@ def user_registration():
             rsp_txt = "Only POST Method Allowed"
 
         if rsp_data is not None:
+            headers = {"Location": "/api/users/" + link}
+            headers["Authorization"] =  auth
             full_rsp = Response(json.dumps(rsp_data), status=rsp_status, content_type="application/json")
         else:
             full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
@@ -301,12 +311,59 @@ def user_registration():
 
     return full_rsp
 
+@application.route("/api/login", methods=["POST"])
+def login():
+
+    inputs = log_and_extract_input(demo, {"parameters": None})
+    rsp_data = None
+    rsp_status = None
+    rsp_txt = None
+
+    try:
+
+        r_svc = _get_registration_service()
+
+        if inputs["method"] == "POST":
+
+            rsp = r_svc.login(inputs['body'])
+
+            if rsp is not None:
+                rsp_data = "OK"
+                rsp_status = 201
+                rsp_txt = "CREATED"
+            else:
+                rsp_data = None
+                rsp_status = 403
+                rsp_txt = "NOT AUTHORIZED"
+        else:
+            rsp_data = None
+            rsp_status = 501
+            rsp_txt = "NOT IMPLEMENTED"
+
+        if rsp_data is not None:
+            # TODO Generalize generating links
+            headers = {"Authorization": rsp}
+            full_rsp = Response(json.dumps(rsp_data, default=str), headers=headers,
+                                status=rsp_status, content_type="application/json")
+        else:
+            full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
+
+    except Exception as e:
+        log_msg = "/api/registration: Exception = " + str(e)
+        logger.error(log_msg)
+        rsp_status = 500
+        rsp_txt = "INTERNAL SERVER ERROR. Please take COMSE6156 -- Cloud Native Applications."
+        full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
+
+    log_response("/api/registration", rsp_status, rsp_data, rsp_txt)
+
+    return full_rsp
+
 logger.debug("__name__ = " + str(__name__))
 # run the app.
 if __name__ == "__main__":
     # Setting debug to True enables debug output. This line should be
     # removed before deploying a production app.
-
 
     logger.debug("Starting Project EB at time: " + str(datetime.now()))
     init()

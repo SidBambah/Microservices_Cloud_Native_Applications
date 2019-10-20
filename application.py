@@ -170,7 +170,24 @@ def demo(parameter):
     rsp = Response(json.dumps(msg), status=200, content_type="application/json")
     return rsp
 
-
+#Middleware before PUT and DELETE requests
+@application.before_request
+def before_request():
+    inputs = log_and_extract_input(demo)
+    if inputs['method'] == "PUT" or inputs['method'] == "DELETE":
+        if "Authorization" in inputs['headers']:
+            auth = inputs['headers']["Authorization"]
+        else:
+            rsp_status = 404
+            rsp_txt = "Not authorized"
+            full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
+            return full_rsp
+        if not security.authorize(auth):
+            rsp_status = 404
+            rsp_txt = "Not authorized"
+            full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
+            return full_rsp
+    pass
 @application.route("/api/user/<email>", methods=["GET", "PUT", "DELETE"])
 def user_email(email):
 
@@ -199,42 +216,29 @@ def user_email(email):
                 rsp_txt = "NOT FOUND"
         elif inputs["method"] == "PUT":
             logger.info(inputs)
-            headers = inputs["headers"]
-            auth = headers["Authorization"]
-            if security.authorize(auth):
-                usr_info = inputs["body"]
-                if "email" not in usr_info:
-                    usr_info["email"] = email
-                rsp = user_service.update_user(usr_info)
-                if rsp is not None:
-                    rsp_data = rsp
-                    rsp_status = 200
-                    rsp_txt = "OK"
-                else:
-                    rsp_data = None
-                    rsp_status = 404
-                    rsp_txt = "NOT UPDATED"
+            usr_info = inputs["body"]
+            if "email" not in usr_info:
+                usr_info["email"] = email
+            rsp = user_service.update_user(usr_info)
+            if rsp is not None:
+                rsp_data = rsp
+                rsp_status = 200
+                rsp_txt = "OK"
             else:
                 rsp_data = None
                 rsp_status = 404
-                rsp_txt = "Not authorized"
+                rsp_txt = "NOT UPDATED"
         elif inputs["method"] == "DELETE":
             headers = inputs["headers"]
-            auth = headers["Authorization"]
-            if security.authorize(auth):
-                rsp = user_service.delete_user(email)
-                if rsp is not None:
-                    rsp_data = rsp
-                    rsp_status = 200
-                    rsp_txt = "OK"
-                else:
-                    rsp_data = None
-                    rsp_status = 404
-                    rsp_txt = "NOT DELETED"
+            rsp = user_service.delete_user(email)
+            if rsp is not None:
+                rsp_data = rsp
+                rsp_status = 200
+                rsp_txt = "OK"
             else:
                 rsp_data = None
                 rsp_status = 404
-                rsp_txt = "Not authorized"
+                rsp_txt = "NOT DELETED"
         else:
             rsp_data = None
             rsp_status = 501

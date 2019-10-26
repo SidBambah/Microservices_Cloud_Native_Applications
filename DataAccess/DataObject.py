@@ -1,6 +1,7 @@
 import DataAccess.DataAdaptor as data_adaptor
 from abc import ABC, abstractmethod
 import pymysql.err
+import json
 
 class DataException(Exception):
 
@@ -36,6 +37,27 @@ class UsersRDB(BaseDataObject):
         res, data = data_adaptor.run_q(sql=sql, args=(email), fetch=True)
         if data is not None and len(data) > 0:
             result =  data[0]
+        else:
+            result = None
+
+        return result
+    
+    @classmethod
+    def get_users(cls, queryParams):
+        queryParams = json.loads(queryParams)
+        if "f" in queryParams:
+            # Give only selected columns
+            f = queryParams["f"].split(',')
+            del queryParams["f"]
+            sql, args = data_adaptor.create_select("users", queryParams, f)
+            res, data = data_adaptor.run_q(sql=sql, args=args, fetch=True)
+        else:
+            # Give all columns
+            sql, args = data_adaptor.create_select("users", queryParams, "*")
+            res,data = data_adaptor.run_q(sql=sql, args=args, fetch=True)
+
+        if data is not None:
+            result =  data
         else:
             result = None
 

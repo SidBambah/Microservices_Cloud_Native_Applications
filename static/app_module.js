@@ -12,16 +12,16 @@ config(['$locationProvider', '$routeProvider',
 
         $routeProvider.
         when('/', {
-            templateUrl: 'templates/home.template.html'
+            templateUrl: './templates/home.template.html'
         }).
         when('/profile', {
-            templateUrl: 'templates/profile.template.html'
+            templateUrl: './templates/profile.template.html'
         }).
         when('/baseball', {
-            templateUrl: 'templates/app.template.html'
+            templateUrl: './templates/app.template.html'
         }).
             otherwise({
-            templateUrl: 'templates/home.template.html'
+            templateUrl: './templates/home.template.html'
         })
         //when('/phones/:phoneId', {
         //   template: '<phone-detail></phone-detail>'

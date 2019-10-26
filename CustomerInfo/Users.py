@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from Context.Context import Context
 from DataAccess.DataObject import UsersRDB as UsersRDB
-
+import json
 # The base classes would not be IN the project. They would be in a separate included package.
 # They would also do some things.
 
@@ -41,6 +41,13 @@ class UsersService(BaseService):
 
         result = UsersRDB.get_by_email(email)
         return result
+
+    @classmethod
+    def get_users(cls, queryParams):
+        result = UsersRDB.get_users(queryParams)
+        return result
+
+
 
     @classmethod
     def create_user(cls, user_info):

@@ -21,7 +21,7 @@ app.controller("myCtrl", function($scope, $http) {
     $scope.havePrev = false;
     $scope.haveNext = false;
 
-    var urlBase = "http://127.0.0.1:5000";
+    var urlBase = "http://flask-env2.us-east-1.elasticbeanstalk.com";
 
 
     $scope.search_type = null;

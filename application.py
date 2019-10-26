@@ -118,6 +118,8 @@ def log_and_extract_input(method, path_params=None):
             data = None
     except Exception as e:
         # This would fail the request in a more real solution.
+        log_msg = "Log and Extract: Exception = " + str(e)
+        logger.error(log_msg)
         data = "You sent something but I could not get JSON out of it."
 
     log_message = str(datetime.now()) + ": Method " + method

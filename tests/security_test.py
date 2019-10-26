@@ -10,5 +10,5 @@ def t2():
     encoded = jwt.encode({"Authorization": "INCORRECT CODE"}, "NYC Secret Code", algorithm="HS256")
     print(authorize(encoded))
 
-t1()
-t2()
+#t1()
+#t2()

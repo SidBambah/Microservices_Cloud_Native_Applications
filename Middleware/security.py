@@ -4,13 +4,21 @@ from time import time
 
 _context = Context.get_default_context()
 
+def authorize(url, method, token):
+    token = jwt.decode(token, key=_context.get_context("JWT_SECRET"), algorithm="HS256")
+    if "Authorization" in token.keys():
+        if token["Authorization"] == "NYC Auth Header":
+            print(method)
+            if (method == "DELETE") & (token["email"] == "admin@columbia.edu"):
+                return True
+            elif (method == "PUT") & (token["email"] == url.split('/')[-1]):
+                return True
+            else:
+                return False
+        else:
+            return False
+    return False
 
-def authorize(auth):
-    auth = jwt.decode(auth, key=_context.get_context("JWT_SECRET"), algorithm="HS256")
-    if "Authorization" in auth.keys():
-        return auth["Authorization"] == "NYC Auth Header"
-    else:
-        return False
 
 def hash_password(pwd):
     global _context
@@ -21,6 +29,7 @@ def hash_password(pwd):
 def generate_token(info):
 
     info["timestamp"] =  time()
+    info["Authorization"] = "NYC Auth Header"
 
     h = jwt.encode(info, key=_context.get_context("JWT_SECRET"))
     h = str(h)

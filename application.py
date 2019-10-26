@@ -15,6 +15,7 @@ from Services.RegisterLogin.RegisterLogin import RegisterLoginSvc
 from Context.Context import Context
 from Middleware import notification
 from Middleware import security
+from Middleware import etags
 # Setup and use the simple, common Python logging framework. Send log messages to the console.
 # The application should get the log level out of the context. We will change later.
 #
@@ -184,7 +185,8 @@ def before_request():
             rsp_txt = "Not authorized"
             full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
             return full_rsp
-        if not security.authorize(auth):
+
+        if not security.authorize(inputs['path'],inputs['method'],auth):
             rsp_status = 404
             rsp_txt = "Not authorized"
             full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
@@ -241,6 +243,7 @@ def user_email(email):
     rsp_data = None
     rsp_status = None
     rsp_txt = None
+    headers = None
 
     try:
 
@@ -254,6 +257,7 @@ def user_email(email):
                 rsp_data = rsp
                 rsp_status = 200
                 rsp_txt = "OK"
+                headers = {"ETag": etags.generate_etag(rsp)}
             else:
                 rsp_data = None
                 rsp_status = 404
@@ -263,11 +267,22 @@ def user_email(email):
             usr_info = inputs["body"]
             if "email" not in usr_info:
                 usr_info["email"] = email
-            rsp = user_service.update_user(usr_info)
-            if rsp is not None:
+
+            old_etag = request.headers.get('If-None-Match', '')
+            
+            if etags.check_etag(old_etag, user_service.get_by_email(email)):
+                rsp = user_service.update_user(usr_info)
+            else:
+                rsp = "Bad ETag"
+
+            if (rsp == "Bad ETag"):
+                rsp_data = None
+                rsp_status = 304
+                rsp_txt = rsp
+            elif rsp is not None:
                 rsp_data = rsp
                 rsp_status = 200
-                rsp_txt = "OK"
+                rsp_txt = "UPDATED"
             else:
                 rsp_data = None
                 rsp_status = 404
@@ -288,7 +303,10 @@ def user_email(email):
             rsp_txt = "NOT IMPLEMENTED"
 
         if rsp_data is not None:
-            full_rsp = Response(json.dumps(rsp_data), status=rsp_status, content_type="application/json")
+            if headers is not None:
+                full_rsp = Response(json.dumps(rsp_data), status=rsp_status, headers=headers, content_type="application/json")
+            else:
+                full_rsp = Response(json.dumps(rsp_data), status=rsp_status, content_type="application/json")
         else:
             full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
 
@@ -343,7 +361,7 @@ def user_registration():
         if rsp_data is not None:
             headers = {"Location": "/api/users/" + link}
             headers["Authorization"] =  auth
-            full_rsp = Response(json.dumps(rsp_data), status=rsp_status, content_type="application/json")
+            full_rsp = Response(json.dumps(rsp_data), status=rsp_status, headers=headers, content_type="application/json")
         else:
             full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
 

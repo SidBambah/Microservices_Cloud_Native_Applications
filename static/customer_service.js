@@ -37,12 +37,11 @@
                             function (data, status, headers) {
                                 var rsp = data;
                                 var h = headers();
-                                var result = data.data;
-                                console.log("Data = " + JSON.stringify(result, null, 4));
                                 console.log("Headers = " + JSON.stringify(h, null, 4))
                                 console.log("RSP = " + JSON.stringify(rsp, null, 4))
 
                                 var auth = h.authorization;
+                                console.log(h.authorization)
                                 sStorage.setItem("token", auth);
                                 resolve("OK")
                             }).error(function (error) {

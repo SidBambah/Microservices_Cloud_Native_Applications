@@ -172,7 +172,8 @@ def lambda_handler(event, context):
             #Send to Beanstalk application here
             if send_flask(rsp):
                 return {
-                    'statusCode': 200,
+                    'statusCode': 302,
+                    'headers': {'Location': 'http://www.google.com'},
                     'body': json.dumps('Email Verified')
                 }
             else:

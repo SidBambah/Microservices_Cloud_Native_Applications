@@ -1,12 +1,11 @@
 DROP TABLE if exists `profiles`;
 
 CREATE TABLE `profiles` (
-  `auto_id` mediumint(8) unsigned NOT NULL auto_increment,
-  `id` varchar(36) NOT NULL unique,
-  `last_name` varchar(255) default NULL,
-  `first_name` varchar(255) default NULL,
-  `email` varchar(255) default NULL unique,
-  `status` varchar(255) default NULL,
-  `password` varchar(255),
-  PRIMARY KEY (`auto_id`)
+  `element_id` mediumint(8) unsigned NOT NULL auto_increment,
+  `userid` varchar(255) default NULL,
+  `element_type` varchar(255) default NULL,
+  `element_subtype` ENUM('WORK', 'HOME', 'MOBILE', 'OTHER') default NULL,
+  `element_value` varchar(255) default NULL,
+  `profileid` varchar(255) default NULL,
+  PRIMARY KEY (`element_id`)
 ) AUTO_INCREMENT=1;

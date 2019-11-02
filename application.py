@@ -10,7 +10,8 @@ from datetime import datetime
 import json
 import uuid
 
-from CustomerInfo.Users import UsersService as UserService
+from Services.CustomerInfo.Users import UsersService as UserService
+from Services.CustomerProfile.Profiles import ProfileService
 from Services.RegisterLogin.RegisterLogin import RegisterLoginSvc
 from Context.Context import Context
 from Middleware import notification

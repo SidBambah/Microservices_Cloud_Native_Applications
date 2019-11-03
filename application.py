@@ -64,6 +64,7 @@ application.add_url_rule('/<username>', 'hello', (lambda username:
 _default_context = None
 _user_service = None
 _registration_service = None
+_profile_service = None
 
 def _get_default_context():
 
@@ -83,6 +84,14 @@ def _get_user_service():
 
     return _user_service
 
+def _get_profile_service():
+    global _profile_service
+
+    if _profile_service is None:
+        _profile_service = ProfileService(_get_default_context())
+
+    return _profile_service
+
 def _get_registration_service():
     global _registration_service
 
@@ -93,11 +102,11 @@ def _get_registration_service():
 
 def init():
 
-    global _default_context, _user_service
+    global _default_context, _user_service, _profile_service
 
     _default_context = Context.get_default_context()
     _user_service = UserService(_default_context)
-
+    _profile_service = ProfileService(_default_context)
     logger.debug("_user_service = " + str(_user_service))
 
 
@@ -178,21 +187,14 @@ def demo(parameter):
 @application.before_request
 def before_request():
     inputs = log_and_extract_input(demo)
-    if inputs['method'] == "PUT" or inputs['method'] == "DELETE":
-        if "Authorization" in inputs['headers']:
-            auth = inputs['headers']["Authorization"]
-        else:
-            rsp_status = 404
-            rsp_txt = "Not authorized"
-            full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
-            return full_rsp
-
-        if not security.authorize(inputs['path'],inputs['method'],auth):
-            rsp_status = 404
-            rsp_txt = "Not authorized"
-            full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
-            return full_rsp
-    pass
+    rsp = security.authorize(inputs)
+    if rsp is not None:
+        rsp_status = 404
+        rsp_txt = "Not authorized"
+        full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
+        return full_rsp
+    else:
+        pass
 
 @application.route("/api/users", methods=["GET"])
 def get_users():
@@ -264,7 +266,6 @@ def user_email(email):
                 rsp_status = 404
                 rsp_txt = "NOT FOUND"
         elif inputs["method"] == "PUT":
-            logger.info(inputs)
             usr_info = inputs["body"]
             if "email" not in usr_info:
                 usr_info["email"] = email
@@ -425,6 +426,124 @@ def login():
     log_response("/api/registration", rsp_status, rsp_data, rsp_txt)
 
     return full_rsp
+
+@application.route("/api/profile", methods=["POST", "GET", "PUT", "DELETE"])
+def profile():
+    global _profile_service
+    global _user_service
+
+    inputs = log_and_extract_input(demo, {"parameters": None})
+    rsp_data = None
+    rsp_status = None
+    rsp_txt = None
+    headers= None
+
+    try:
+        profile_service = _get_profile_service()
+        user_service = _get_user_service()
+
+        if inputs["method"] == "GET":
+            query_params = json.dumps(inputs["query_params"])
+
+            rsp = profile_service.get_profile_entries(query_params)
+        
+            if rsp is not None:
+                rsp_data = rsp
+                rsp_status = 200
+                rsp_txt = "OK"
+            else:
+                rsp_data = None
+                rsp_status = 404
+                rsp_txt = "NOT FOUND"
+        elif inputs["method"] == "POST":
+            #Get the profile entry information from the POST request
+            profile_data = inputs["body"]
+            #Get user id from provided email
+            user_info = user_service.get_by_email(profile_data["email"])
+            if user_info is None:
+                rsp_data = None
+                rsp_status = 404
+                rsp_txt = "User not found with that email"
+            else:
+                profile_data['userid'] = user_info["id"]
+                #User ID and Profile ID are the same for simplicity
+                profile_data['profileid'] = profile_data['userid']
+                rsp = profile_service.create_profile_entry(profile_data)
+                if rsp is not None:
+                    rsp_data = rsp
+                    rsp_status = 201
+                    rsp_txt = "Entry Created"
+                else:
+                    rsp_data = None
+                    rsp_status = 404
+                    rsp_txt = "Entry Not Created"
+        elif inputs["method"] == "PUT":
+            profile_data = inputs["body"]
+            #Get user id from provided email
+            user_info = user_service.get_by_email(profile_data["email"])
+            if user_info is None:
+                rsp_data = None
+                rsp_status = 404
+                rsp_txt = "User not found with that email"
+            else:
+                profile_data['userid'] = user_info["id"]
+                profile_data['profileid'] = profile_data['userid']
+                
+                rsp = profile_service.update_profile_entry(profile_data)
+
+                if rsp is not None:
+                    rsp_data = rsp
+                    rsp_status = 200
+                    rsp_txt = "UPDATED"
+                else:
+                    rsp_data = None
+                    rsp_status = 404
+                    rsp_txt = "NOT UPDATED"
+        elif inputs["method"] == "DELETE":
+            #Get the profile entry information from the DELETE request
+            entry_info = inputs["body"]
+            #Get user id from provided email
+            user_info = user_service.get_by_email(entry_info["email"])
+            if user_info is None:
+                rsp_data = None
+                rsp_status = 404
+                rsp_txt = "User not found with that email"
+            else:
+                entry_info['userid'] = user_info["id"]
+                rsp = profile_service.delete_profile_entry(entry_info)
+                if rsp is not None:
+                    rsp_data = rsp
+                    rsp_status = 200
+                    rsp_txt = "Entry Deleted"
+                else:
+                    rsp_data = None
+                    rsp_status = 404
+                    rsp_txt = "Entry Not Deleted"
+        else:
+            rsp_data = None
+            rsp_status = 501
+            rsp_txt = "NOT IMPLEMENTED"
+        
+        if rsp_data is not None:
+            if headers is not None:
+                full_rsp = Response(json.dumps(rsp_data), status=rsp_status, headers=headers, content_type="application/json")
+            else:
+                full_rsp = Response(json.dumps(rsp_data), status=rsp_status, content_type="application/json")
+        else:
+            full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
+
+    except Exception as e:
+        log_msg = "/api/profile: Exception = " + str(e)
+        logger.error(log_msg)
+        rsp_status = 500
+        rsp_txt = "INTERNAL SERVER ERROR. Please take COMSE6156 -- Cloud Native Applications."
+        full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
+
+    log_response("/api/profile", rsp_status, rsp_data, rsp_txt)
+
+    return full_rsp
+
+
 
 logger.debug("__name__ = " + str(__name__))
 # run the app.

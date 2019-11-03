@@ -37,6 +37,11 @@ class UsersRDB(BaseDataObject):
         res, data = data_adaptor.run_q(sql=sql, args=(email), fetch=True)
         if data is not None and len(data) > 0:
             result =  data[0]
+            # Compute links for user
+            result["links"] = [
+                {"rel": "profile", "href": "/api/profile?userid=" + result["id"], "method": "GET"},
+                {"rel": "profile", "href": "/api/profile", "method": "POST"}
+            ]
         else:
             result = None
 
@@ -55,7 +60,13 @@ class UsersRDB(BaseDataObject):
             # Give all columns
             sql, args = data_adaptor.create_select("users", queryParams, "*")
             res,data = data_adaptor.run_q(sql=sql, args=args, fetch=True)
-
+            if data is not None:
+                # Compute links for each returned user
+                for x in data:
+                    x["links"] = [
+                        {"rel": "profile", "href": "/api/profile?userid=" + x["id"], "method": "GET"},
+                        {"rel": "profile", "href": "/api/profile", "method": "POST"}
+                    ]
         if data is not None:
             result =  data
         else:
@@ -118,6 +129,81 @@ class UsersRDB(BaseDataObject):
             res = None
         return res
 
+class ProfilesRDB(BaseDataObject):
 
+    def __init__(self, ctx):
+        super().__init__()
 
+        self._ctx = ctx
+    
+    @classmethod
+    def get_profile_entries(cls, queryParams):
+        queryParams = json.loads(queryParams)
+        if 'userid' in queryParams:
+            sql = "select * from e6156.profiles where userid=%s"
+            res, data = data_adaptor.run_q(sql=sql, args=(queryParams['userid']), fetch=True)
+            if data is not None:
+                result =  data
+            else:
+                result = None
+        else:
+            result = None
 
+        return result
+
+    @classmethod
+    def create_profile_entry(cls, entry_info):
+        required = {"userid", "element_type", "element_subtype", "element_value", "profileid"}
+        entry_info = { key: entry_info[key] for key in required }
+        result = None
+
+        try:
+            sql, args = data_adaptor.create_insert(table_name="profiles", row=entry_info)
+            res, data = data_adaptor.run_q(sql, args)
+            if res != 1:
+                result = None
+            else:
+                result = "Profile Entry Created"
+        except pymysql.err.IntegrityError as ie:
+            if ie.args[0] == 1062:
+                raise (DataException(DataException.duplicate_key))
+            else:
+                raise DataException()
+        except Exception as e:
+            raise DataException()
+
+        return result
+
+    @classmethod
+    def update_profile_entry(cls, profile_entry):
+        required = {"userid", "element_type", "element_subtype", "element_value", "profileid"}
+        cleaned_info = { key: profile_entry[key] for key in required }
+        result = None
+
+        try:
+            sql, args = data_adaptor.create_update("profiles", cleaned_info, {"element_value": profile_entry["old_element_value"]})
+            res, data = data_adaptor.run_q(sql, args)
+            if res != 1:
+                result = None
+            else:
+                result = "Updated successfully"
+        except pymysql.err.IntegrityError as ie:
+            if ie.args[0] == 1062:
+                raise (DataException(DataException.duplicate_key))
+            else:
+                raise DataException()
+        except Exception as e:
+            raise DataException()
+
+        return result
+
+    @classmethod
+    def delete_profile_entry(cls, profile_entry):
+
+        sql = "delete from e6156.profiles where element_value=%s"
+        res, data = data_adaptor.run_q(sql=sql, args=(profile_entry['element_value']), fetch=True)
+        if res == 1:
+            res = "Successful Deletion"
+        else:
+            res = None
+        return res

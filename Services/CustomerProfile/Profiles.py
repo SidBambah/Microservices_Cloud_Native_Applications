@@ -1,8 +1,7 @@
-from uuid import uuid4
 from abc import ABC, abstractmethod
 from Context.Context import Context
-from DataAccess.DataObject import ProfileRDB as UsersRDB
-
+from DataAccess.DataObject import ProfilesRDB
+import json
 # The base classes would not be IN the project. They would be in a separate included package.
 # They would also do some things.
 
@@ -38,35 +37,25 @@ class ProfileService(BaseService):
 
 
     @classmethod
-    def get_by_email(cls, email):
+    def get_profile_entries(cls, queryParams):
 
-        result = UsersRDB.get_by_email(email)
+        result = ProfilesRDB.get_profile_entries(queryParams)
         return result
 
     @classmethod
-    def create_user(cls, user_info):
-
-        for f in UsersService.required_create_fields:
-            v = user_info.get(f, None)
-            if v is None:
-                raise ServiceException(ServiceException.missing_field,
-                                       "Missing field = " + f)
-
-            if f == 'email':
-                if v.find('@') == -1:
-                    raise ServiceException(ServiceException.bad_data,
-                           "Email looks invalid: " + v)
-
-        uid = str(uuid4())
-        user_info['id'] = uid
-        result = UsersRDB.create_user(user_info=user_info)
-
+    def create_profile_entry(cls, entry_info):
+        
+        result = ProfilesRDB.create_profile_entry(entry_info)
         return result
 
     @classmethod
-    def delete_user(cls, email):
-        pass
+    def update_profile_entry(cls, entry_info):
+        
+        result = ProfilesRDB.update_profile_entry(entry_info)
+        return result
 
     @classmethod
-    def update_user(cls, email, data):
-        pass
+    def delete_profile_entry(cls, entry_info):
+
+        result = ProfilesRDB.delete_profile_entry(entry_info)
+        return result

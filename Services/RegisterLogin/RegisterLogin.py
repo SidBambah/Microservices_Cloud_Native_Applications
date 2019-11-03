@@ -1,6 +1,6 @@
 from Middleware import security
 from Context.Context import Context
-from CustomerInfo.Users import UsersService as user_svc
+from Services.CustomerInfo.Users import UsersService as user_svc
 
 class RegisterLoginSvc():
 

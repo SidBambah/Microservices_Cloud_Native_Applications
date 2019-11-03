@@ -17,6 +17,7 @@ from Context.Context import Context
 from Middleware import notification
 from Middleware import security
 from Middleware import etags
+from Middleware import address_service_connection
 # Setup and use the simple, common Python logging framework. Send log messages to the console.
 # The application should get the log level out of the context. We will change later.
 #
@@ -468,7 +469,15 @@ def profile():
                 profile_data['userid'] = user_info["id"]
                 #User ID and Profile ID are the same for simplicity
                 profile_data['profileid'] = profile_data['userid']
-                rsp = profile_service.create_profile_entry(profile_data)
+
+                #Processing if it is an address
+                if profile_data["element_type"] == "ADDRESS":
+                    address_id = address_service_connection.verify_address(profile_data)
+                    if address_id is not None:
+                        profile_data["element_value"] = "/address/" + address_id
+                        rsp = profile_service.create_profile_entry(profile_data)
+                else:
+                    rsp = profile_service.create_profile_entry(profile_data)
                 if rsp is not None:
                     rsp_data = rsp
                     rsp_status = 201
@@ -488,8 +497,15 @@ def profile():
             else:
                 profile_data['userid'] = user_info["id"]
                 profile_data['profileid'] = profile_data['userid']
-                
-                rsp = profile_service.update_profile_entry(profile_data)
+
+                #Processing if it is an address
+                if profile_data["element_type"] == "ADDRESS":
+                    address_id = address_service_connection.verify_address(profile_data)
+                    if address_id is not None:
+                        profile_data["element_value"] = "/address/" + address_id
+                        rsp = profile_service.update_profile_entry(profile_data)
+                else:
+                    rsp = profile_service.update_profile_entry(profile_data)
 
                 if rsp is not None:
                     rsp_data = rsp

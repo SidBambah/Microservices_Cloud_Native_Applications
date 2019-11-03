@@ -17,6 +17,6 @@ def t1():
     if x.status_code != 201:
         print("Bad Address")
     else:
-        print(x.text)
+        print(x.json())
         
 t1()

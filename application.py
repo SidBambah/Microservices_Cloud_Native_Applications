@@ -449,6 +449,16 @@ def profile():
             rsp = profile_service.get_profile_entries(query_params)
         
             if rsp is not None:
+                if len(rsp) > 0:
+                    entries = []
+                    for entry in rsp:
+                        entries.append({'element_id': entry['element_id'], 'element_type': entry['element_type'], 'element_subtype': entry['element_subtype'],
+                                        'element_value': entry['element_value']})
+                    temp_rsp = rsp
+                    rsp = {}
+                    rsp['userid'] = temp_rsp[0]['userid']
+                    rsp['profileid'] = temp_rsp[0]['profileid']
+                    rsp['entries'] = entries
                 rsp_data = rsp
                 rsp_status = 200
                 rsp_txt = "OK"

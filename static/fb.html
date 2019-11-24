@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Facebook Login JavaScript Example</title>
+<meta charset="UTF-8">
+</head>
+<body>
+<script>
+
+  function statusChangeCallback(response) {  // Called with the results from FB.getLoginStatus().
+    console.log('statusChangeCallback');
+    console.log(response);                   // The current login status of the person.
+    if (response.status === 'connected') {   // Logged into your webpage and Facebook.
+      testAPI();
+      doLogin(response.authResponse.accessToken);
+    } else {                                 // Not logged into your webpage or we are unable to tell.
+      document.getElementById('status').innerHTML = 'Please log ' +
+        'into this webpage.';
+    }
+  }
+  function driveLogin() {
+    FB.login(function(response){
+      statusChangeCallback(response)
+    }, {scope: 'email, name, id'});
+  }
+  
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '2426552980925527',
+      cookie     : true,                     // Enable cookies to allow the server to access the session.
+      xfbml      : true,                     // Parse social plugins on this webpage.
+      version    : 'v5.0'           // Use this Graph API version for this call.
+    });
+
+  };
+
+  
+  (function(d, s, id) {                      // Load the SDK asynchronously
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "https://connect.facebook.net/en_US/sdk.js";
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));
+
+ 
+  function testAPI() {                      // Testing Graph API after login.  See statusChangeCallback() for when this call is made.
+    console.log('Welcome!  Fetching your information.... ');
+    FB.api('/me', function(response) {
+      console.log('Successful login for: ' + response.name);
+      document.getElementById('status').innerHTML =
+        'Thanks for logging in, ' + response.name + '!';
+      window.locaion = 'https://www.google.com';
+    });
+  }
+
+  function doLogin(token) {
+    var base_url = "http://flask-env2.us-east-1.elasticbeanstalk.com/api"
+    return new Promise(function(resolve, reject) {
+        console.log("Driving login.")
+        var url = base_url + "/fblogin";
+        console.log("token = " + token);
+
+        var bd = {"token": token};
+        $.ajax({
+          url : url,
+          type: "POST",
+          data: JSON.stringify(bd),
+          contentType: "application/json; charset=utf-8",
+          dataType   : "json",
+          success    : function(data, status, xhr){
+            var rsp = data;
+            console.log("RSP = " + JSON.stringify(rsp, null, 4))
+
+            var auth = xhr.getResponseHeader("Authorization");
+            console.log(auth)
+            sessionStorage.setItem("token", auth);
+            resolve("OK")
+          },
+          error: function(error){
+            console.log("Error = " + JSON.stringify(error, null, 4));
+            reject("Error")
+          }
+      });
+    });
+  }
+</script>
+
+
+//  The JS SDK Login Button 
+
+<fb:login-button onlogin="driveLogin();">
+</fb:login-button>
+
+<div id="status">
+</div>
+
+<script src="./jquery.min.js"></script>
+</body>
+</html>

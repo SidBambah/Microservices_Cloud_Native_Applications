@@ -1,6 +1,7 @@
 from Context.Context import Context
 import jwt
 from time import time
+import requests
 
 _context = Context.get_default_context()
 
@@ -18,6 +19,20 @@ def check_token(token, method, url):
             return False
     else:
         return False
+
+
+def fb_info(token):
+    # Return email associated w/ token
+    FBVerifyEndpoint = "https://graph.facebook.com/me?fields=id,email,name&access_token=" + token
+    rsp = requests.get(FBVerifyEndpoint)
+    if 'error' in rsp.json():
+        return None
+    else:
+        rsp = rsp.json()
+        rsp['first_name'] = rsp['name'].split(' ')[0]
+        rsp['last_name'] = rsp['name'].split(' ')[-1]
+        del rsp['name']
+        return rsp
 
 def authorize(inputs):
     method = inputs['method']

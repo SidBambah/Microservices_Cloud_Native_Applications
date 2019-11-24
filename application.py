@@ -379,6 +379,75 @@ def user_registration():
 
     return full_rsp
 
+@application.route("/api/fblogin", methods=["POST"])
+def fb_login():
+    inputs = log_and_extract_input(demo)
+    rsp_data = None
+    rsp_status = None
+    rsp_txt = None
+    headers = {}
+
+    try:
+
+        r_svc = _get_registration_service()
+        link = False
+        if inputs["method"] == "POST":
+            #Get the user's information from the POST request
+            fb_token = inputs["body"]['token']
+
+            # Get info from FB token
+            info = security.fb_info(fb_token)
+            # Check if user exists, else create him
+            if(info is not None):
+                checkUser = r_svc.fb_login(info)
+                if(checkUser):
+                    rsp_data = "OK"
+                    rsp_status = 201
+                    rsp_txt = "CREATED"
+                    auth = checkUser
+                else:
+                    info['status'] = "ACTIVE"
+                    info['password'] = str(uuid.uuid4())
+                    rsp = r_svc.register(info)
+                    if rsp is not None:
+                        rsp_data = rsp
+                        rsp_status = 201
+                        rsp_txt = "OK"
+                        link = rsp[0]
+                        auth = rsp[1]
+                    else:
+                        rsp_data = None
+                        rsp_status = 404
+                        rsp_txt = "COULD NOT CREATE"
+            else:
+                rsp_data = None
+                rsp_status = 403
+                rsp_txt = "INVALID TOKEN"
+        else:
+            rsp_data = None
+            rsp_status = 501
+            rsp_txt = "Only POST Method Allowed"
+
+        if rsp_data is not None:
+            if(link):
+                headers = {"Location": "/api/users/" + link}
+            headers["Authorization"] =  auth
+            headers["Access-Control-Expose-Headers"] = "Authorization"
+            full_rsp = Response(json.dumps(rsp_data), status=rsp_status, headers=headers, content_type="application/json")
+        else:
+            full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
+
+    except Exception as e:
+        log_msg = "/fblogin: Exception = " + str(e)
+        logger.error(log_msg)
+        rsp_status = 500
+        rsp_txt = "INTERNAL SERVER ERROR. Please take COMSE6156 -- Cloud Native Applications."
+        full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
+
+    log_response("/registrations", rsp_status, rsp_data, rsp_txt)
+
+    return full_rsp
+
 @application.route("/api/login", methods=["POST"])
 def login():
 

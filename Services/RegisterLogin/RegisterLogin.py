@@ -43,5 +43,14 @@ class RegisterLoginSvc():
             return False
 
     @classmethod
+    def fb_login(cls, login_info):
+        s_info = user_svc.get_by_email(login_info['email'])
+        if s_info is not None:
+            tok = security.generate_token(s_info)
+            return tok
+        else:
+            return False
+
+    @classmethod
     def get_field_map(cls, target_resource):
         pass

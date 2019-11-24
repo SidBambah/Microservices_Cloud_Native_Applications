@@ -25,8 +25,9 @@ class Context():
         db_connect_info = os.environ.get('db_connect_info', None)
         db_connect_info = json.loads(db_connect_info)
         secret = os.environ.get('JWT_SECRET', None)
+        fb_app_token = os.environ.get('FB_APP_TOKEN', None)
         ctx = { "db_connect_info": db_connect_info }
         ctx['JWT_SECRET'] = secret
-
+        ctx['FB_APP_TOKEN'] = fb_app_token
         result = Context(ctx)
         return result

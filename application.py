@@ -270,10 +270,10 @@ def user_email(email):
             usr_info = inputs["body"]
             if "email" not in usr_info:
                 usr_info["email"] = email
-
+            
             old_etag = request.headers.get('If-None-Match', '')
             
-            if etags.check_etag(old_etag, user_service.get_by_email(email)):
+            if etags.check_etag(old_etag, user_service.get_by_email(email)) or security.is_admin(inputs["headers"]["Authorization"]):
                 rsp = user_service.update_user(usr_info)
             else:
                 rsp = "Bad ETag"

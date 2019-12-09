@@ -20,6 +20,12 @@ def check_token(token, method, url):
     else:
         return False
 
+def is_admin(token):
+    token = jwt.decode(token, key=_context.get_context("JWT_SECRET"), algorithm="HS256")
+    if (token["email"] == "admin@columbia.edu"):
+        return True
+    return False
+
 
 def fb_info(token):
     # Return email associated w/ token

@@ -145,7 +145,15 @@ class ProfilesRDB(BaseDataObject):
             sql = "select * from e6156.profiles where userid=%s"
             res, data = data_adaptor.run_q(sql=sql, args=(queryParams['userid']), fetch=True)
             if data is not None:
-                result =  data
+                entries = []
+                for entry in data:
+                    entries.append({'element_id': entry['element_id'], 'element_type': entry['element_type'], 'element_subtype': entry['element_subtype'],
+                                    'element_value': entry['element_value']})
+                temp = data
+                result = {}
+                result['userid'] = temp[0]['userid']
+                result['profileid'] = temp[0]['profileid']
+                result['entries'] = entries
             else:
                 result = None
         elif 'value' in queryParams:
@@ -161,7 +169,6 @@ class ProfilesRDB(BaseDataObject):
                 result = data
             else:
                 result = None
-            result = None
         else:
             result = None
 

@@ -43,7 +43,6 @@ class UsersRDB(BaseDataObject):
                 {"rel": "profile", "href": "/api/profile", "method": "POST"}
             ]
             del result['auto_id']
-            del result['password']
         else:
             result = None
 
@@ -70,7 +69,6 @@ class UsersRDB(BaseDataObject):
                         {"rel": "profile", "href": "/api/profile", "method": "POST"}
                     ]
                     del x['auto_id']
-                    del x['password']
         if data is not None:
             result =  data
         else:

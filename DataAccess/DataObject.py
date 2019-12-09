@@ -146,6 +146,20 @@ class ProfilesRDB(BaseDataObject):
                 result =  data
             else:
                 result = None
+        elif 'value' in queryParams:
+            sql = "select * from e6156.profiles where element_value=%s"
+            res, data = data_adaptor.run_q(sql=sql, args=(queryParams['value']), fetch=True)
+            if data is not None:
+                # Compute links for each returned user
+                for x in data:
+                    x["links"] = [
+                        {"rel": "profile", "href": "/api/profile?userid=" + x["userid"], "method": "GET"},
+                        {"rel": "profile", "href": "/api/profile", "method": "POST"}
+                    ]
+                result = data
+            else:
+                result = None
+            result = None
         else:
             result = None
 

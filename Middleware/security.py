@@ -11,7 +11,7 @@ def check_token(token, method, url):
         if token["Authorization"] == "NYC Auth Header":
             if (method == "DELETE") & (token["email"] == "admin@columbia.edu"):
                 return True
-            elif (method == "PUT") & (token["email"] == url.split('/')[-1]):
+            elif (method == "PUT") & (token["email"] == url.split('/')[-1] or token["email"] == "admin@columbia.edu"):
                 return True
             else:
                 return False
